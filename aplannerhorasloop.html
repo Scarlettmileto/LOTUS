@@ -1,0 +1,1287 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Planner por Horas & Loops</title>
+  <style>
+    :root{
+      --bg:#f6f2ea;
+      --panel:#fffaf1;
+      --panel2:#ffffff;
+      --ink:#211f1d;
+      --muted:#766f67;
+      --line:#ded2c2;
+      --accent:#111111;
+      --soft:#ede2d2;
+      --ok:#d8efcf;
+      --warn:#fff0b8;
+      --blue:#d9e7ff;
+      --pink:#ffe0ea;
+      --green:#def5e8;
+      --purple:#eadfff;
+      --shadow:0 10px 30px rgba(29,24,18,.08);
+      --radius:22px;
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(255,255,255,.9), transparent 35%),
+        linear-gradient(135deg, #f9f3e8, #eee3d3);
+      color:var(--ink);
+      min-height:100vh;
+    }
+
+    header{
+      padding:32px 5vw 18px;
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-end;
+      gap:24px;
+      flex-wrap:wrap;
+    }
+
+    .brand h1{
+      margin:0;
+      font-size:clamp(28px, 5vw, 54px);
+      line-height:.95;
+      letter-spacing:-.06em;
+    }
+
+    .brand p{
+      margin:12px 0 0;
+      color:var(--muted);
+      max-width:760px;
+    }
+
+    .top-actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    button, input, select, textarea{
+      font:inherit;
+    }
+
+    button{
+      border:1px solid var(--accent);
+      background:var(--accent);
+      color:#fff;
+      border-radius:999px;
+      padding:10px 15px;
+      cursor:pointer;
+      transition:.18s ease;
+    }
+
+    button:hover{transform:translateY(-1px)}
+    button.secondary{
+      background:transparent;
+      color:var(--ink);
+      border-color:var(--line);
+    }
+    button.soft{
+      background:var(--soft);
+      color:var(--ink);
+      border-color:var(--line);
+    }
+    button.danger{
+      background:#3a1515;
+      border-color:#3a1515;
+    }
+
+    main{
+      width:min(1500px, 92vw);
+      margin:0 auto 70px;
+    }
+
+    .tabs{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin:10px 0 22px;
+      position:sticky;
+      top:0;
+      z-index:5;
+      padding:10px 0;
+      backdrop-filter: blur(16px);
+    }
+
+    .tab{
+      background:rgba(255,250,241,.65);
+      color:var(--ink);
+      border:1px solid var(--line);
+      box-shadow:none;
+    }
+
+    .tab.active{
+      background:#111;
+      color:#fff;
+      border-color:#111;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap:22px;
+      align-items:start;
+    }
+
+    .grid-3{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap:16px;
+    }
+
+    .panel{
+      background:rgba(255,250,241,.82);
+      border:1px solid rgba(222,210,194,.9);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:20px;
+      backdrop-filter: blur(14px);
+    }
+
+    .panel h2, .panel h3{
+      margin:0 0 14px;
+      letter-spacing:-.03em;
+    }
+
+    .muted{color:var(--muted)}
+    .small{font-size:13px}
+    .hidden{display:none !important}
+
+    .field{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      margin-bottom:12px;
+    }
+
+    label{
+      font-size:13px;
+      color:var(--muted);
+    }
+
+    input, select, textarea{
+      width:100%;
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:11px 12px;
+      background:#fffdf8;
+      color:var(--ink);
+      outline:none;
+    }
+
+    textarea{min-height:86px; resize:vertical}
+
+    .form-row{
+      display:grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap:12px;
+    }
+
+    .form-row-3{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap:12px;
+    }
+
+    .task-list{
+      display:grid;
+      gap:12px;
+    }
+
+    .task-card{
+      background:#fffdf8;
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:15px;
+      display:grid;
+      gap:10px;
+    }
+
+    .task-top{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      align-items:flex-start;
+    }
+
+    .task-top h3{
+      margin:0;
+      font-size:18px;
+    }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      padding:5px 9px;
+      font-size:12px;
+      background:#fff;
+      white-space:nowrap;
+    }
+
+    .status-pendente{background:var(--warn)}
+    .status-criativo{background:var(--blue)}
+    .status-arquivado{background:#eee}
+    .status-ativo{background:var(--ok)}
+
+    .progress{
+      height:12px;
+      background:#eee3d3;
+      border-radius:999px;
+      overflow:hidden;
+      border:1px solid #dfd0bf;
+    }
+
+    .bar{
+      height:100%;
+      width:0%;
+      background:#111;
+      border-radius:999px;
+    }
+
+    .task-meta{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      color:var(--muted);
+      font-size:13px;
+    }
+
+    .calendar{
+      display:grid;
+      grid-template-columns:repeat(7, minmax(0,1fr));
+      gap:10px;
+    }
+
+    .day{
+      background:#fffdf8;
+      border:1px solid var(--line);
+      border-radius:16px;
+      min-height:120px;
+      padding:10px;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      cursor:pointer;
+    }
+
+    .day.today{
+      outline:2px solid #111;
+    }
+
+    .day strong{
+      font-size:13px;
+      display:flex;
+      justify-content:space-between;
+      gap:6px;
+    }
+
+    .day .dots{
+      display:flex;
+      flex-wrap:wrap;
+      gap:4px;
+    }
+
+    .dot{
+      width:8px;
+      height:8px;
+      border-radius:99px;
+      background:#111;
+    }
+
+    .metric-row{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:12px;
+      margin-bottom:16px;
+    }
+
+    .metric{
+      background:#fffdf8;
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:14px;
+    }
+
+    .metric b{
+      font-size:26px;
+      letter-spacing:-.04em;
+    }
+
+    .log-list{
+      display:grid;
+      gap:10px;
+    }
+
+    .log{
+      background:#fffdf8;
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:12px;
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:flex-start;
+    }
+
+    .postit-board{
+      display:grid;
+      grid-template-columns: repeat(auto-fill, minmax(210px,1fr));
+      gap:14px;
+    }
+
+    .postit{
+      border:1px solid rgba(0,0,0,.08);
+      border-radius:18px;
+      padding:14px;
+      min-height:150px;
+      box-shadow:0 10px 20px rgba(0,0,0,.05);
+      transform:rotate(-.3deg);
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      gap:12px;
+    }
+
+    .postit:nth-child(4n+1){background:var(--warn)}
+    .postit:nth-child(4n+2){background:var(--pink)}
+    .postit:nth-child(4n+3){background:var(--green)}
+    .postit:nth-child(4n+4){background:var(--purple)}
+
+    .postit h4{
+      margin:0;
+      font-size:14px;
+    }
+
+    .postit p{
+      margin:0;
+      white-space:pre-wrap;
+      font-size:14px;
+    }
+
+    .note-actions{
+      display:flex;
+      gap:6px;
+      flex-wrap:wrap;
+    }
+
+    .note-actions button{
+      padding:6px 9px;
+      font-size:12px;
+    }
+
+    .modal{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.35);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+      z-index:50;
+    }
+
+    .modal-card{
+      width:min(760px, 96vw);
+      max-height:90vh;
+      overflow:auto;
+      background:var(--panel);
+      border-radius:28px;
+      padding:22px;
+      box-shadow:0 30px 80px rgba(0,0,0,.25);
+    }
+
+    .modal-top{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      margin-bottom:16px;
+    }
+
+    .modal-top h2{margin:0}
+
+    .empty{
+      padding:30px;
+      text-align:center;
+      color:var(--muted);
+      border:1px dashed var(--line);
+      border-radius:18px;
+      background:rgba(255,255,255,.4);
+    }
+
+    .week-selector{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+
+    @media(max-width:900px){
+      .grid, .grid-3, .form-row, .form-row-3, .metric-row{
+        grid-template-columns:1fr;
+      }
+      .calendar{
+        grid-template-columns:1fr;
+      }
+      .day{min-height:90px}
+    }
+
+    @media print{
+      body{background:#fff}
+      .tabs,.top-actions,button,.modal{display:none !important}
+      main{width:100%}
+      .panel{box-shadow:none; break-inside:avoid}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <h1>Planner por Horas<br>& Loops</h1>
+      <p>Conclua por tempo real, ciclos fechados ou compensação. Cada baixa pode virar observação, ideia, produção futura ou pensar sobre.</p>
+    </div>
+    <div class="top-actions">
+      <button class="secondary" onclick="exportData()">Exportar dados</button>
+      <button class="secondary" onclick="importData()">Importar</button>
+      <button class="danger" onclick="resetAll()">Limpar tudo</button>
+    </div>
+  </header>
+
+  <main>
+    <nav class="tabs">
+      <button class="tab active" data-tab="inicio" onclick="showTab('inicio')">Início</button>
+      <button class="tab" data-tab="dia" onclick="showTab('dia')">Dia atual</button>
+      <button class="tab" data-tab="tarefas" onclick="showTab('tarefas')">Tarefas</button>
+      <button class="tab" data-tab="baixa" onclick="showTab('baixa')">Dar baixa</button>
+      <button class="tab" data-tab="postits" onclick="showTab('postits')">Post-its</button>
+      <button class="tab" data-tab="analise" onclick="showTab('analise')">Análise</button>
+    </nav>
+
+    <section id="inicio" class="tab-page">
+      <div class="panel">
+        <div class="week-selector">
+          <button class="secondary" onclick="shiftWeek(-1)">← Semana anterior</button>
+          <strong id="weekTitle"></strong>
+          <button class="secondary" onclick="shiftWeek(1)">Próxima semana →</button>
+          <button class="soft" onclick="goCurrentWeek()">Hoje</button>
+        </div>
+      </div>
+
+      <br>
+
+      <div class="metric-row">
+        <div class="metric"><span class="muted small">Horas feitas na semana</span><br><b id="mWeekHours">0h</b></div>
+        <div class="metric"><span class="muted small">Loops fechados</span><br><b id="mWeekLoops">0</b></div>
+        <div class="metric"><span class="muted small">Tarefas concluídas</span><br><b id="mWeekDone">0</b></div>
+        <div class="metric"><span class="muted small">Compensação sugerida</span><br><b id="mComp">0 min/dia</b></div>
+      </div>
+
+      <div class="grid">
+        <div class="panel">
+          <h2>Calendário da semana</h2>
+          <div id="calendar" class="calendar"></div>
+        </div>
+
+        <div class="panel">
+          <h2>Resumo da semana atual</h2>
+          <div id="weekSummary"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="dia" class="tab-page hidden">
+      <div class="grid">
+        <div class="panel">
+          <h2 id="dayTitle">Dia atual</h2>
+          <p class="muted">Aqui aparece o que você já fez no dia selecionado. Use o botão “+ dar baixa” para registrar um loop ou tempo manual.</p>
+          <button onclick="showTab('baixa')">+ dar baixa</button>
+          <br><br>
+          <div id="dayLogs" class="log-list"></div>
+        </div>
+
+        <div class="panel">
+          <h2>Dados do dia</h2>
+          <div class="metric-row">
+            <div class="metric"><span class="muted small">Horas</span><br><b id="dayHours">0h</b></div>
+            <div class="metric"><span class="muted small">Loops</span><br><b id="dayLoops">0</b></div>
+            <div class="metric"><span class="muted small">Registros</span><br><b id="dayCount">0</b></div>
+            <div class="metric"><span class="muted small">Notas</span><br><b id="dayNotes">0</b></div>
+          </div>
+          <h3>Tarefas tocadas hoje</h3>
+          <div id="dayTasks"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="tarefas" class="tab-page hidden">
+      <div class="grid">
+        <div class="panel">
+          <h2>Criar tarefa/meta</h2>
+          <div class="field">
+            <label>Nome da tarefa</label>
+            <input id="taskName" placeholder="Ex: Tumblr, Substack, Programação, AXymyvw..." />
+          </div>
+          <div class="form-row-3">
+            <div class="field">
+              <label>Meta semanal em horas</label>
+              <input id="taskHours" type="number" min="0" step="0.25" placeholder="10" />
+            </div>
+            <div class="field">
+              <label>Duração de 1 loop em horas</label>
+              <input id="taskLoop" type="number" min="0.25" step="0.25" placeholder="2" />
+            </div>
+            <div class="field">
+              <label>Status</label>
+              <select id="taskStatus">
+                <option value="ativo">ativo/objetivo</option>
+                <option value="pendente">pendente/esperando</option>
+                <option value="criativo">criativo/análise</option>
+                <option value="arquivado">desclassificado/arquivado</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label>Categoria</label>
+            <input id="taskCategory" placeholder="Ex: postagem, pessoal, técnica, marca própria..." />
+          </div>
+          <button onclick="addTask()">Criar tarefa</button>
+        </div>
+
+        <div class="panel">
+          <h2>Suas tarefas</h2>
+          <div id="taskList" class="task-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="baixa" class="tab-page hidden">
+      <div class="grid">
+        <div class="panel">
+          <h2>Dar baixa na tarefa</h2>
+          <p class="muted">Escolha a tarefa, registre por loop ou tempo manual e salve observações antes de fechar.</p>
+
+          <div class="field">
+            <label>Tarefa</label>
+            <select id="logTask" onchange="fillTaskMeta()"></select>
+          </div>
+
+          <div id="selectedTaskMeta" class="panel" style="box-shadow:none; padding:14px; margin-bottom:12px;"></div>
+
+          <div class="form-row">
+            <div class="field">
+              <label>Tipo de baixa</label>
+              <select id="logType" onchange="toggleLogType()">
+                <option value="loop">Fechar 1 loop</option>
+                <option value="manual">Adicionar tempo manual</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Data</label>
+              <input id="logDate" type="date" />
+            </div>
+          </div>
+
+          <div id="manualBox" class="field hidden">
+            <label>Tempo dedicado em horas</label>
+            <input id="manualHours" type="number" min="0.05" step="0.05" placeholder="0.5" />
+          </div>
+
+          <div class="form-row">
+            <div class="field">
+              <label>Transformar anotação em</label>
+              <select id="noteKind">
+                <option value="">Sem post-it</option>
+                <option value="observacao">Observação</option>
+                <option value="ideia">Ideia</option>
+                <option value="produzir">Produzir futuramente</option>
+                <option value="pensar">Pensar sobre</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label>Status após a baixa</label>
+              <select id="statusAfter">
+                <option value="">Manter status</option>
+                <option value="ativo">ativo/objetivo</option>
+                <option value="pendente">pendente/esperando</option>
+                <option value="criativo">criativo/análise</option>
+                <option value="arquivado">desclassificado/arquivado</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Observações, ideias, produção futura ou pensar sobre</label>
+            <textarea id="logNote" placeholder="Ex: vídeo de dança TikTok; testar estética com sombra azul; produzir futuramente..."></textarea>
+          </div>
+
+          <button onclick="addLog()">Fechar baixa</button>
+        </div>
+
+        <div class="panel">
+          <h2>Como a conclusão funciona</h2>
+          <div class="task-card">
+            <strong>Exemplo</strong>
+            <p class="muted">Tarefa X = 10 horas na semana. 1 loop = 2 horas. Meta = 5 loops.</p>
+            <p>Você pode concluir por:</p>
+            <div class="task-meta">
+              <span class="pill">5 loops fechados</span>
+              <span class="pill">10h acumuladas</span>
+              <span class="pill">compensação diária</span>
+            </div>
+          </div>
+          <br>
+          <div id="quickIncomplete"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="postits" class="tab-page hidden">
+      <div class="panel">
+        <h2>Pastas de post-its</h2>
+        <div class="tabs" style="position:static; padding:0; margin:0 0 16px;">
+          <button class="tab active note-filter" onclick="filterNotes('all', this)">Todas</button>
+          <button class="tab note-filter" onclick="filterNotes('observacao', this)">Observações</button>
+          <button class="tab note-filter" onclick="filterNotes('ideia', this)">Ideias</button>
+          <button class="tab note-filter" onclick="filterNotes('produzir', this)">Produzir futuramente</button>
+          <button class="tab note-filter" onclick="filterNotes('pensar', this)">Pensar sobre</button>
+        </div>
+        <div id="postitBoard" class="postit-board"></div>
+      </div>
+    </section>
+
+    <section id="analise" class="tab-page hidden">
+      <div class="grid">
+        <div class="panel">
+          <h2>Análise por tarefa</h2>
+          <div id="analysisList" class="task-list"></div>
+        </div>
+        <div class="panel">
+          <h2>Diagnóstico rápido</h2>
+          <div id="diagnostic"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="importModal" class="modal hidden">
+    <div class="modal-card">
+      <div class="modal-top">
+        <h2>Importar dados</h2>
+        <button class="secondary" onclick="closeImport()">Fechar</button>
+      </div>
+      <p class="muted">Cole aqui o JSON exportado anteriormente.</p>
+      <textarea id="importText" style="min-height:240px;"></textarea>
+      <br><br>
+      <button onclick="applyImport()">Importar agora</button>
+    </div>
+  </div>
+
+  <script>
+    const KEY = "planner_horas_loops_v1";
+
+    const defaultTasks = [
+      ["Tumblr", 4, 1, "postagem", "ativo"],
+      ["Substack", 4, 1, "postagem", "ativo"],
+      ["Vídeos curtos", 3, 1, "postagem", "ativo"],
+      ["Organização / marca própria / ideias", 4, 1, "marca própria", "ativo"],
+      ["Programação", 4, 1, "técnica", "ativo"],
+      ["UX/UI", 4, 1, "técnica", "ativo"],
+      ["Testes de fotos", 2, 1, "produção", "criativo"],
+      ["Yoga e Pilates", 4, 1, "pessoal", "ativo"],
+      ["Academia", 4, 1, "pessoal", "ativo"],
+      ["Meditação", 4, .5, "pessoal", "ativo"],
+      ["Estudos e pesquisa", 4, 1, "pessoal", "ativo"],
+      ["Inglês", 4, .5, "idiomas", "ativo"],
+      ["Italiano", 4, .5, "idiomas", "ativo"]
+    ];
+
+    let state = load();
+    let currentWeekOffset = 0;
+    let selectedDate = isoDate(new Date());
+    let noteFilter = "all";
+
+    function load(){
+      const raw = localStorage.getItem(KEY);
+      if(raw){
+        try { return JSON.parse(raw); } catch(e){}
+      }
+      return {
+        tasks: defaultTasks.map((t,i)=>({
+          id: crypto.randomUUID(),
+          name:t[0],
+          weeklyHours:t[1],
+          loopHours:t[2],
+          category:t[3],
+          status:t[4],
+          createdAt:new Date().toISOString()
+        })),
+        logs:[],
+        notes:[]
+      };
+    }
+
+    function save(){
+      localStorage.setItem(KEY, JSON.stringify(state));
+      renderAll();
+    }
+
+    function isoDate(d){
+      const z = new Date(d.getTime() - d.getTimezoneOffset()*60000);
+      return z.toISOString().slice(0,10);
+    }
+
+    function parseDate(s){
+      return new Date(s + "T12:00:00");
+    }
+
+    function startOfWeek(date, offset=0){
+      const d = new Date(date);
+      const day = d.getDay();
+      const diff = (day === 0 ? -6 : 1) - day;
+      d.setDate(d.getDate()+diff+(offset*7));
+      d.setHours(12,0,0,0);
+      return d;
+    }
+
+    function weekDays(){
+      const start = startOfWeek(new Date(), currentWeekOffset);
+      return Array.from({length:7}, (_,i)=>{
+        const d = new Date(start);
+        d.setDate(start.getDate()+i);
+        return d;
+      });
+    }
+
+    function inCurrentWeek(dateString){
+      return weekDays().some(d => isoDate(d) === dateString);
+    }
+
+    function getTask(id){return state.tasks.find(t=>t.id===id)}
+    function logsForWeek(){
+      const days = weekDays().map(isoDate);
+      return state.logs.filter(l=>days.includes(l.date));
+    }
+    function logsForDate(date){
+      return state.logs.filter(l=>l.date===date);
+    }
+    function logsForTaskWeek(taskId){
+      return logsForWeek().filter(l=>l.taskId===taskId);
+    }
+    function sumHours(logs){
+      return logs.reduce((a,l)=>a+Number(l.hours||0),0);
+    }
+    function sumLoops(logs){
+      return logs.reduce((a,l)=>a+Number(l.loops||0),0);
+    }
+    function pct(done,total){
+      if(!total) return 0;
+      return Math.min(100, Math.round((done/total)*100));
+    }
+    function fmtHours(n){
+      n = Number(n||0);
+      if(n === 0) return "0h";
+      if(Number.isInteger(n)) return n + "h";
+      return n.toFixed(2).replace(".", ",") + "h";
+    }
+    function statusClass(status){
+      return {
+        pendente:"status-pendente",
+        criativo:"status-criativo",
+        arquivado:"status-arquivado",
+        ativo:"status-ativo"
+      }[status] || "";
+    }
+    function statusLabel(status){
+      return {
+        pendente:"pendente/esperando",
+        criativo:"criativo/análise",
+        arquivado:"desclassificado/arquivado",
+        ativo:"ativo/objetivo"
+      }[status] || status;
+    }
+
+    function showTab(id){
+      document.querySelectorAll(".tab-page").forEach(p=>p.classList.add("hidden"));
+      document.getElementById(id).classList.remove("hidden");
+      document.querySelectorAll("nav.tabs > .tab").forEach(b=>b.classList.toggle("active", b.dataset.tab===id));
+      renderAll();
+    }
+
+    function renderCalendar(){
+      const days = weekDays();
+      const names = ["Seg","Ter","Qua","Qui","Sex","Sáb","Dom"];
+      document.getElementById("weekTitle").textContent = `${isoDate(days[0])} até ${isoDate(days[6])}`;
+
+      const cal = document.getElementById("calendar");
+      cal.innerHTML = "";
+      days.forEach((d,i)=>{
+        const date = isoDate(d);
+        const logs = logsForDate(date);
+        const div = document.createElement("div");
+        div.className = "day" + (date===isoDate(new Date()) ? " today" : "");
+        div.onclick = () => { selectedDate = date; showTab("dia"); };
+        const namesText = [...new Set(logs.map(l => getTask(l.taskId)?.name).filter(Boolean))].slice(0,4);
+        div.innerHTML = `
+          <strong><span>${names[i]}</span><span>${date.slice(5)}</span></strong>
+          <span class="muted small">${fmtHours(sumHours(logs))} · ${sumLoops(logs)} loops</span>
+          <div class="dots">${logs.slice(0,12).map(()=>`<span class="dot"></span>`).join("")}</div>
+          <span class="small">${namesText.join(", ") || "sem registros"}</span>
+        `;
+        cal.appendChild(div);
+      });
+    }
+
+    function renderMetrics(){
+      const weekLogs = logsForWeek();
+      document.getElementById("mWeekHours").textContent = fmtHours(sumHours(weekLogs));
+      document.getElementById("mWeekLoops").textContent = sumLoops(weekLogs);
+
+      let done = 0;
+      let missingTotal = 0;
+      state.tasks.forEach(t=>{
+        if(t.status === "arquivado") return;
+        const h = sumHours(logsForTaskWeek(t.id));
+        if(h >= Number(t.weeklyHours||0) && Number(t.weeklyHours||0)>0) done++;
+        else missingTotal += Math.max(0, Number(t.weeklyHours||0) - h);
+      });
+      document.getElementById("mWeekDone").textContent = done;
+      document.getElementById("mComp").textContent = Math.ceil((missingTotal*60)/7) + " min/dia";
+    }
+
+    function renderWeekSummary(){
+      const box = document.getElementById("weekSummary");
+      const activeTasks = state.tasks.filter(t=>t.status!=="arquivado");
+      if(!activeTasks.length){
+        box.innerHTML = `<div class="empty">Crie tarefas para ver seu resumo semanal.</div>`;
+        return;
+      }
+      box.innerHTML = activeTasks.map(t=>{
+        const logs = logsForTaskWeek(t.id);
+        const h = sumHours(logs);
+        const loops = sumLoops(logs);
+        const targetLoops = Math.ceil(Number(t.weeklyHours||0)/Number(t.loopHours||1));
+        const done = h >= Number(t.weeklyHours||0);
+        const missing = Math.max(0, Number(t.weeklyHours||0)-h);
+        return `
+          <div class="task-card">
+            <div class="task-top">
+              <h3>${escapeHtml(t.name)}</h3>
+              <span class="pill ${statusClass(t.status)}">${statusLabel(t.status)}</span>
+            </div>
+            <div class="progress"><div class="bar" style="width:${pct(h,t.weeklyHours)}%"></div></div>
+            <div class="task-meta">
+              <span class="pill">${fmtHours(h)} / ${fmtHours(t.weeklyHours)}</span>
+              <span class="pill">${loops} / ${targetLoops} loops</span>
+              <span class="pill">${done ? "concluído" : "faltam " + fmtHours(missing)}</span>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function renderTasks(){
+      const list = document.getElementById("taskList");
+      if(!state.tasks.length){
+        list.innerHTML = `<div class="empty">Nenhuma tarefa ainda.</div>`;
+        return;
+      }
+      list.innerHTML = state.tasks.map(t=>{
+        const logs = logsForTaskWeek(t.id);
+        const h = sumHours(logs);
+        const targetLoops = Math.ceil(Number(t.weeklyHours||0)/Number(t.loopHours||1));
+        return `
+          <div class="task-card">
+            <div class="task-top">
+              <div>
+                <h3>${escapeHtml(t.name)}</h3>
+                <span class="muted small">${escapeHtml(t.category || "sem categoria")}</span>
+              </div>
+              <span class="pill ${statusClass(t.status)}">${statusLabel(t.status)}</span>
+            </div>
+            <div class="progress"><div class="bar" style="width:${pct(h,t.weeklyHours)}%"></div></div>
+            <div class="task-meta">
+              <span class="pill">Meta: ${fmtHours(t.weeklyHours)}/semana</span>
+              <span class="pill">1 loop = ${fmtHours(t.loopHours)}</span>
+              <span class="pill">Meta loops: ${targetLoops}</span>
+              <span class="pill">Feito: ${fmtHours(h)}</span>
+            </div>
+            <div class="top-actions">
+              <button class="soft" onclick="selectTaskForLog('${t.id}')">dar baixa</button>
+              <button class="secondary" onclick="editTask('${t.id}')">editar</button>
+              <button class="secondary" onclick="deleteTask('${t.id}')">excluir</button>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      const logTask = document.getElementById("logTask");
+      const old = logTask.value;
+      logTask.innerHTML = state.tasks.map(t=>`<option value="${t.id}">${escapeHtml(t.name)}</option>`).join("");
+      if(state.tasks.some(t=>t.id===old)) logTask.value = old;
+      fillTaskMeta();
+    }
+
+    function renderDay(){
+      document.getElementById("dayTitle").textContent = `Dia selecionado: ${selectedDate}`;
+      const logs = logsForDate(selectedDate);
+      document.getElementById("dayHours").textContent = fmtHours(sumHours(logs));
+      document.getElementById("dayLoops").textContent = sumLoops(logs);
+      document.getElementById("dayCount").textContent = logs.length;
+      document.getElementById("dayNotes").textContent = state.notes.filter(n=>n.date===selectedDate).length;
+
+      const dayLogs = document.getElementById("dayLogs");
+      if(!logs.length){
+        dayLogs.innerHTML = `<div class="empty">Nada registrado nesse dia ainda.</div>`;
+      } else {
+        dayLogs.innerHTML = logs.map(l=>{
+          const t = getTask(l.taskId);
+          return `
+            <div class="log">
+              <div>
+                <strong>${escapeHtml(t?.name || "Tarefa removida")}</strong><br>
+                <span class="muted small">${fmtHours(l.hours)} · ${l.loops} loop(s)</span>
+                ${l.note ? `<p>${escapeHtml(l.note)}</p>` : ""}
+              </div>
+              <button class="secondary" onclick="deleteLog('${l.id}')">remover</button>
+            </div>
+          `;
+        }).join("");
+      }
+
+      const touched = [...new Set(logs.map(l=>l.taskId))].map(id=>getTask(id)).filter(Boolean);
+      document.getElementById("dayTasks").innerHTML = touched.length
+        ? touched.map(t=>`<span class="pill ${statusClass(t.status)}">${escapeHtml(t.name)}</span>`).join(" ")
+        : `<p class="muted">Nenhuma tarefa tocada.</p>`;
+    }
+
+    function fillTaskMeta(){
+      const id = document.getElementById("logTask").value;
+      const t = getTask(id);
+      const box = document.getElementById("selectedTaskMeta");
+      if(!t){ box.innerHTML = `<p class="muted">Crie uma tarefa primeiro.</p>`; return; }
+      const logs = logsForTaskWeek(t.id);
+      const h = sumHours(logs);
+      const missing = Math.max(0, Number(t.weeklyHours||0)-h);
+      const comp = Math.ceil((missing*60)/7);
+      box.innerHTML = `
+        <strong>${escapeHtml(t.name)}</strong>
+        <div class="progress" style="margin:10px 0;"><div class="bar" style="width:${pct(h,t.weeklyHours)}%"></div></div>
+        <div class="task-meta">
+          <span class="pill">Feito: ${fmtHours(h)}</span>
+          <span class="pill">Meta: ${fmtHours(t.weeklyHours)}</span>
+          <span class="pill">Loop: ${fmtHours(t.loopHours)}</span>
+          <span class="pill">Compensação: ${comp} min/dia</span>
+        </div>
+      `;
+    }
+
+    function renderQuickIncomplete(){
+      const incomplete = state.tasks.filter(t=>{
+        if(t.status==="arquivado") return false;
+        return sumHours(logsForTaskWeek(t.id)) < Number(t.weeklyHours||0);
+      });
+      const box = document.getElementById("quickIncomplete");
+      if(!incomplete.length){
+        box.innerHTML = `<div class="task-card"><strong>Tudo fechado na semana.</strong><p class="muted">As metas ativas já aparecem como concluídas.</p></div>`;
+        return;
+      }
+      box.innerHTML = `<h3>Metas ainda abertas</h3>` + incomplete.map(t=>{
+        const h = sumHours(logsForTaskWeek(t.id));
+        const missing = Math.max(0, Number(t.weeklyHours||0)-h);
+        return `<div class="log"><div><strong>${escapeHtml(t.name)}</strong><br><span class="muted small">Faltam ${fmtHours(missing)} · ${Math.ceil(missing*60/7)} min/dia</span></div></div>`;
+      }).join("");
+    }
+
+    function renderNotes(){
+      const board = document.getElementById("postitBoard");
+      const notes = state.notes.filter(n=> noteFilter==="all" || n.kind===noteFilter);
+      if(!notes.length){
+        board.innerHTML = `<div class="empty">Nenhum post-it nessa pasta ainda.</div>`;
+        return;
+      }
+      board.innerHTML = notes.slice().reverse().map(n=>{
+        const t = getTask(n.taskId);
+        return `
+          <div class="postit">
+            <div>
+              <h4>${labelKind(n.kind)} · ${escapeHtml(t?.name || "sem tarefa")}</h4>
+              <span class="muted small">${n.date}</span>
+              <p>${escapeHtml(n.text)}</p>
+            </div>
+            <div class="note-actions">
+              <button class="secondary" onclick="promoteNote('${n.id}','pensar')">pensar</button>
+              <button class="secondary" onclick="promoteNote('${n.id}','produzir')">produzir</button>
+              <button class="secondary" onclick="deleteNote('${n.id}')">remover</button>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function labelKind(kind){
+      return {
+        observacao:"Observação",
+        ideia:"Ideia",
+        produzir:"Produzir futuramente",
+        pensar:"Pensar sobre"
+      }[kind] || kind;
+    }
+
+    function renderAnalysis(){
+      const list = document.getElementById("analysisList");
+      const tasks = state.tasks.filter(t=>t.status!=="arquivado");
+      if(!tasks.length){
+        list.innerHTML = `<div class="empty">Sem tarefas ativas.</div>`;
+      } else {
+        list.innerHTML = tasks.map(t=>{
+          const logs = logsForTaskWeek(t.id);
+          const h = sumHours(logs);
+          const loops = sumLoops(logs);
+          const missing = Math.max(0, Number(t.weeklyHours||0)-h);
+          const notes = state.notes.filter(n=>n.taskId===t.id);
+          return `
+            <div class="task-card">
+              <div class="task-top">
+                <h3>${escapeHtml(t.name)}</h3>
+                <span class="pill ${statusClass(t.status)}">${statusLabel(t.status)}</span>
+              </div>
+              <div class="progress"><div class="bar" style="width:${pct(h,t.weeklyHours)}%"></div></div>
+              <div class="task-meta">
+                <span class="pill">${pct(h,t.weeklyHours)}%</span>
+                <span class="pill">${fmtHours(h)} feitas</span>
+                <span class="pill">${fmtHours(missing)} restantes</span>
+                <span class="pill">${loops} loops</span>
+                <span class="pill">${notes.length} post-its</span>
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+
+      const weekLogs = logsForWeek();
+      const active = tasks.length;
+      const completed = tasks.filter(t=>sumHours(logsForTaskWeek(t.id)) >= Number(t.weeklyHours||0)).length;
+      const most = [...tasks].sort((a,b)=>sumHours(logsForTaskWeek(b.id))-sumHours(logsForTaskWeek(a.id)))[0];
+      document.getElementById("diagnostic").innerHTML = `
+        <div class="task-card">
+          <strong>Leitura da semana</strong>
+          <p>Você registrou <b>${fmtHours(sumHours(weekLogs))}</b> e fechou <b>${sumLoops(weekLogs)}</b> loops.</p>
+          <p>Metas concluídas: <b>${completed}/${active}</b>.</p>
+          <p>Maior foco da semana: <b>${most ? escapeHtml(most.name) : "nenhum"}</b>.</p>
+        </div>
+        <br>
+        <div class="task-card">
+          <strong>Uso inteligente</strong>
+          <p class="muted">Quando uma tarefa não fecha por loop, use tempo manual. O sistema soma o acúmulo e considera concluída quando as horas semanais batem a meta.</p>
+        </div>
+      `;
+    }
+
+    function renderAll(){
+      renderCalendar();
+      renderMetrics();
+      renderWeekSummary();
+      renderTasks();
+      renderDay();
+      renderQuickIncomplete();
+      renderNotes();
+      renderAnalysis();
+      document.getElementById("logDate").value ||= selectedDate;
+    }
+
+    function addTask(){
+      const name = document.getElementById("taskName").value.trim();
+      const weeklyHours = Number(document.getElementById("taskHours").value);
+      const loopHours = Number(document.getElementById("taskLoop").value);
+      const category = document.getElementById("taskCategory").value.trim();
+      const status = document.getElementById("taskStatus").value;
+      if(!name || !weeklyHours || !loopHours){
+        alert("Preencha nome, meta semanal e duração do loop.");
+        return;
+      }
+      state.tasks.push({
+        id:crypto.randomUUID(), name, weeklyHours, loopHours, category, status, createdAt:new Date().toISOString()
+      });
+      document.getElementById("taskName").value = "";
+      document.getElementById("taskHours").value = "";
+      document.getElementById("taskLoop").value = "";
+      document.getElementById("taskCategory").value = "";
+      save();
+    }
+
+    function selectTaskForLog(id){
+      showTab("baixa");
+      setTimeout(()=>{
+        document.getElementById("logTask").value = id;
+        fillTaskMeta();
+      }, 0);
+    }
+
+    function editTask(id){
+      const t = getTask(id);
+      if(!t) return;
+      const name = prompt("Nome da tarefa:", t.name);
+      if(name===null) return;
+      const weeklyHours = prompt("Meta semanal em horas:", t.weeklyHours);
+      if(weeklyHours===null) return;
+      const loopHours = prompt("Duração de 1 loop em horas:", t.loopHours);
+      if(loopHours===null) return;
+      const category = prompt("Categoria:", t.category || "");
+      if(category===null) return;
+      const status = prompt("Status: ativo, pendente, criativo ou arquivado", t.status);
+      if(status===null) return;
+      Object.assign(t, {
+        name:name.trim() || t.name,
+        weeklyHours:Number(weeklyHours) || t.weeklyHours,
+        loopHours:Number(loopHours) || t.loopHours,
+        category,
+        status:["ativo","pendente","criativo","arquivado"].includes(status) ? status : t.status
+      });
+      save();
+    }
+
+    function deleteTask(id){
+      if(!confirm("Excluir tarefa? Os registros antigos continuam, mas a tarefa aparecerá como removida nos logs.")) return;
+      state.tasks = state.tasks.filter(t=>t.id!==id);
+      save();
+    }
+
+    function toggleLogType(){
+      document.getElementById("manualBox").classList.toggle("hidden", document.getElementById("logType").value !== "manual");
+    }
+
+    function addLog(){
+      const taskId = document.getElementById("logTask").value;
+      const t = getTask(taskId);
+      if(!t){ alert("Crie ou escolha uma tarefa."); return; }
+      const type = document.getElementById("logType").value;
+      const date = document.getElementById("logDate").value || isoDate(new Date());
+      let hours = type==="loop" ? Number(t.loopHours||1) : Number(document.getElementById("manualHours").value);
+      if(!hours || hours <= 0){ alert("Informe um tempo válido."); return; }
+      const loops = type==="loop" ? 1 : 0;
+      const note = document.getElementById("logNote").value.trim();
+      const kind = document.getElementById("noteKind").value;
+      const statusAfter = document.getElementById("statusAfter").value;
+
+      const log = {
+        id:crypto.randomUUID(),
+        taskId, date, type, hours, loops, note,
+        createdAt:new Date().toISOString()
+      };
+      state.logs.push(log);
+
+      if(kind && note){
+        state.notes.push({
+          id:crypto.randomUUID(),
+          taskId, logId:log.id, date, kind, text:note,
+          createdAt:new Date().toISOString()
+        });
+      }
+
+      if(statusAfter) t.status = statusAfter;
+
+      selectedDate = date;
+      document.getElementById("manualHours").value = "";
+      document.getElementById("logNote").value = "";
+      document.getElementById("noteKind").value = "";
+      document.getElementById("statusAfter").value = "";
+      save();
+      showTab("dia");
+    }
+
+    function deleteLog(id){
+      if(!confirm("Remover esse registro?")) return;
+      state.logs = state.logs.filter(l=>l.id!==id);
+      state.notes = state.notes.filter(n=>n.logId!==id);
+      save();
+    }
+
+    function deleteNote(id){
+      if(!confirm("Remover post-it?")) return;
+      state.notes = state.notes.filter(n=>n.id!==id);
+      save();
+    }
+
+    function promoteNote(id, kind){
+      const n = state.notes.find(n=>n.id===id);
+      if(n){ n.kind = kind; save(); }
+    }
+
+    function filterNotes(kind, btn){
+      noteFilter = kind;
+      document.querySelectorAll(".note-filter").forEach(b=>b.classList.remove("active"));
+      btn.classList.add("active");
+      renderNotes();
+    }
+
+    function shiftWeek(n){
+      currentWeekOffset += n;
+      renderAll();
+    }
+
+    function goCurrentWeek(){
+      currentWeekOffset = 0;
+      selectedDate = isoDate(new Date());
+      renderAll();
+    }
+
+    function exportData(){
+      const blob = new Blob([JSON.stringify(state,null,2)], {type:"application/json"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "planner-horas-loops-dados.json";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function importData(){
+      document.getElementById("importModal").classList.remove("hidden");
+    }
+
+    function closeImport(){
+      document.getElementById("importModal").classList.add("hidden");
+    }
+
+    function applyImport(){
+      try{
+        const data = JSON.parse(document.getElementById("importText").value);
+        if(!data.tasks || !data.logs || !data.notes) throw new Error("Formato inválido");
+        state = data;
+        localStorage.setItem(KEY, JSON.stringify(state));
+        closeImport();
+        renderAll();
+      }catch(e){
+        alert("Não consegui importar. Verifique se o JSON está correto.");
+      }
+    }
+
+    function resetAll(){
+      if(!confirm("Isso apaga todos os dados salvos neste navegador. Continuar?")) return;
+      localStorage.removeItem(KEY);
+      state = load();
+      renderAll();
+    }
+
+    function escapeHtml(str){
+      return String(str ?? "").replace(/[&<>"']/g, m => ({
+        "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#039;"
+      }[m]));
+    }
+
+    document.getElementById("logDate").value = selectedDate;
+    renderAll();
+  </script>
+</body>
+</html>
